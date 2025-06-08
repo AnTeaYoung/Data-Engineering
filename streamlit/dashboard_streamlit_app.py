@@ -45,14 +45,19 @@
 #             st.bar_chart(click_sum.set_index("product_id"))
 # else:
 #     st.info("👆 버튼을 눌러 Kafka 데이터를 불러오세요.")
-
 import streamlit as st
 import requests
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from kafka import KafkaConsumer
+
 import json
+
+import importlib.util
+
+spec = importlib.util.find_spec("kafka")
+kafka_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(kafka_module)
 
 st.set_page_config(page_title="시스템 로그 & Kafka 대시보드", layout="wide")
 st.title("🔥 시스템 로그 분석 & Kafka 실시간 인기 상품 분석")
@@ -72,7 +77,7 @@ def fetch_analysis():
         return None
 
 def consume_messages(max_messages=50):
-    consumer = KafkaConsumer(
+    consumer = kafka_module.KafkaConsumer(
         "popular-products-by-age",
         bootstrap_servers="localhost:9094",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
